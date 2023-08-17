@@ -4,8 +4,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 from django.core.mail import send_mail
 
-from .models import Post
-from .forms import EmailPostForm
+from .models import Post, Comment
+from .forms import EmailPostForm, CommentForm
 
 
 class PostListView(ListView):
@@ -48,8 +48,30 @@ def post_detail(request, year, month, day, post):
                              publish__year=year,
                              publish__month=month,
                              publish__day=day)
+    
+    # list of comments for this post
+    comments = Comment.objects.filter(active=True)
+
+    new_comment = None
+
+    if request.method == 'POST':
+        comment_form = CommentForm(data=request.POST)
+
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            # assign the current post to the comment
+            new_comment.post = post
+            # save the comment
+            new_comment.save()
+    else:
+        comment_form = CommentForm()
+
+
     context = {
-        'post': post
+        'post': post,
+        'comments': comments,
+        'new_comment': new_comment,
+        'commemt_form': comment_form
     }
     
     return render(request, 'blog/post/detail.html', context)
