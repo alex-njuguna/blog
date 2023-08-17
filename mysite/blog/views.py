@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
 
 from .models import Post
+from .forms import EmailPostForm
 
 
 class PostListView(ListView):
@@ -13,7 +14,6 @@ class PostListView(ListView):
     template_name = 'blog/post/list.html'
 
 
-    
 """
 def post_list(request):
    # display all published post
@@ -52,6 +52,28 @@ def post_detail(request, year, month, day, post):
     }
     
     return render(request, 'blog/post/detail.html', context)
+
+
+def post_share(request, post_id):
+    # share a post via email
+    post = get_object_or_404(Post, id=post_id, 
+                             status='published')
+    if request.method == 'POST':
+        form = EmailPostForm(request.POST)
+
+        if form.is_valid():
+            cd = form.cleaned_data
+        
+    else:
+        form = EmailPostForm()
+    
+    context = {
+        'form': form
+    }
+
+    return render(request, 'blog/post/share.html', context)
+
+
 
 
 
